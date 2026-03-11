@@ -7,27 +7,25 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<header>
-  <div class="header-box">
+  <header>
+    <div class="header-box">
+      <div class="logo-area">
+        <img src="logo.png" class="logo" alt="Logo" />
 
-    <div class="logo-area">
-      <img src="logo.png" class="logo">
-
-      <div class="header-text">
-        <h1>NATIONAL ARTS & SPORTS CLUB</h1>
-        <p>Blood Support System</p>
+        <div class="header-text">
+          <h1>NATIONAL ARTS & SPORTS CLUB</h1>
+          <p>Blood Support System</p>
+        </div>
       </div>
+
+      <nav class="nav-menu">
+        <a href="index.html">Home</a>
+        <a href="donor.html">Donor</a>
+        <a href="request.html">Request</a>
+        <a href="match.html">Find Donors</a>
+      </nav>
     </div>
-
-    <nav class="nav-menu">
-      <a href="index.html">Home</a>
-      <a href="donor.html">Donor</a>
-      <a href="request.html">Request</a>
-      <a href="match.html">Find Donors</a>
-    </nav>
-
-  </div>
-</header>
+  </header>
 
   <div class="container">
     <div class="card-box">
@@ -52,11 +50,22 @@
     async function findDonors() {
       const bloodGroup = document.getElementById("bloodGroup").value.trim();
       const results = document.getElementById("results");
+
+      if (!bloodGroup) {
+        results.innerHTML = "<p>Please enter a blood group.</p>";
+        return;
+      }
+
       results.innerHTML = "Loading...";
 
       try {
-        const response = await fetch(`http://localhost:5000/request/match/${bloodGroup}`);
+        const response = await fetch(`https://blood-support-system.onrender.com/request/match/${bloodGroup}`);
         const donors = await response.json();
+
+        if (!response.ok) {
+          results.innerHTML = "<p>Failed to fetch donors.</p>";
+          return;
+        }
 
         if (!donors.length) {
           results.innerHTML = "<p>No matching donors found.</p>";

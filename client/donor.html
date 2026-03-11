@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Donor Registration</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header>
+  <div class="header-box">
+
+    <div class="logo-area">
+      <img src="logo.png" class="logo">
+
+      <div class="header-text">
+        <h1>NATIONAL ARTS & SPORTS CLUB</h1>
+        <p>Blood Support System</p>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="donor.html">Donor</a>
+      <a href="request.html">Request</a>
+      <a href="match.html">Find Donors</a>
+    </nav>
+
+  </div>
+</header>
+
+  <div class="container">
+    <div class="form-box">
+      <h2 class="title-center green-title">Donor Registration</h2>
+
+      <input type="text" id="name" placeholder="Full Name" />
+      <select id="bloodGroup">
+        <option value="">Select Blood Group</option>
+        <option>A+</option>
+        <option>A-</option>
+        <option>B+</option>
+        <option>B-</option>
+        <option>AB+</option>
+        <option>AB-</option>
+        <option>O+</option>
+        <option>O-</option>
+      </select>
+      <input type="text" id="phone" placeholder="Phone Number" />
+      <input type="text" id="place" placeholder="Place" />
+      <input type="text" id="whatsapp" placeholder="WhatsApp Number" />
+
+      <button class="btn-green" onclick="registerDonor()">Register Donor</button>
+      <div class="msg" id="message"></div>
+
+      <a class="link" href="index.html">Back to Home</a>
+    </div>
+  </div>
+
+  <footer>
+    NATIONAL ARTS & SPORTS CLUB, UDMA PADINHAR, KASARAGOD
+  </footer>
+
+  <script>
+    async function registerDonor() {
+      const donorData = {
+        name: document.getElementById("name").value.trim(),
+        bloodGroup: document.getElementById("bloodGroup").value,
+        phone: document.getElementById("phone").value.trim(),
+        place: document.getElementById("place").value.trim(),
+        whatsapp: document.getElementById("whatsapp").value.trim(),
+        available: true
+      };
+
+      const message = document.getElementById("message");
+
+      try {
+        const response = await fetch("http://localhost:5000/donor/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(donorData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          message.style.color = "green";
+          message.textContent = "Donor registered successfully!";
+          document.getElementById("name").value = "";
+          document.getElementById("bloodGroup").value = "";
+          document.getElementById("phone").value = "";
+          document.getElementById("place").value = "";
+          document.getElementById("whatsapp").value = "";
+        } else {
+          message.style.color = "red";
+          message.textContent = result.message || "Registration failed";
+        }
+      } catch (error) {
+        message.style.color = "red";
+        message.textContent = "Server error";
+      }
+    }
+  </script>
+</body>
+</html>

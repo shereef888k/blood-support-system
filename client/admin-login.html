@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-box">
+      <div class="logo-area">
+        <img src="logo.png" class="logo" alt="National Arts & Sports Club Logo" />
+        <div class="header-text">
+          <h1>NATIONAL ARTS & SPORTS CLUB</h1>
+          <p>Admin Login</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="form-box">
+      <h2 class="title-center blue-title">Admin Login</h2>
+
+      <input type="text" id="adminUser" placeholder="Enter admin username" />
+      <input type="password" id="adminPass" placeholder="Enter admin password" />
+
+      <button onclick="loginAdmin()">Login</button>
+
+      <div class="msg" id="loginMsg"></div>
+
+      <a class="link" href="index.html">Back to Home</a>
+    </div>
+  </div>
+
+  <footer>
+    NATIONAL ARTS & SPORTS CLUB, UDMA PADINHAR, KASARAGOD - 671319
+  </footer>
+
+  <script>
+    function loginAdmin() {
+      const username = document.getElementById("adminUser").value.trim();
+      const password = document.getElementById("adminPass").value.trim();
+      const msg = document.getElementById("loginMsg");
+
+      // Simple local login
+      const adminUsername = "admin";
+      const adminPassword = "12345";
+
+      if (username === adminUsername && password === adminPassword) {
+        localStorage.setItem("adminLoggedIn", "true");
+        window.location.href = "admin.html";
+      } else {
+        msg.style.color = "red";
+        msg.textContent = "Invalid admin username or password";
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .stat-card h3 {
+      margin: 0;
+      font-size: 28px;
+      color: #0f6b3e;
+    }
+
+    .stat-card p {
+      margin: 8px 0 0;
+      color: #555;
+      font-weight: bold;
+    }
+
+    .admin-section {
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+      margin-bottom: 25px;
+    }
+
+    .admin-card {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+
+    .admin-card h3 {
+      margin-bottom: 8px;
+      color: #0f6b3e;
+    }
+
+    .admin-btn {
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      margin-right: 8px;
+      margin-top: 10px;
+    }
+
+    .delete-btn {
+      background: #c62828;
+    }
+
+    .toggle-btn {
+      background: #1f7ea1;
+    }
+
+    .logout-btn {
+      background: #c62828;
+      width: auto;
+      padding: 10px 16px;
+      margin-bottom: 20px;
+    }
+
+    .status-select {
+      margin-top: 10px;
+      width: 220px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    #broadcastResults {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-box">
+      <div class="logo-area">
+        <img src="logo.png" class="logo" alt="National Arts & Sports Club Logo" />
+        <div class="header-text">
+          <h1>NATIONAL ARTS & SPORTS CLUB</h1>
+          <p>Admin Dashboard</p>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="index.html">Home</a>
+        <a href="donor.html">Donor</a>
+        <a href="request.html">Request</a>
+        <a href="match.html">Find Donors</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <button class="admin-btn logout-btn" onclick="logoutAdmin()">Logout</button>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3 id="totalDonors">0</h3>
+        <p>Total Donors</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="availableDonors">0</h3>
+        <p>Available Donors</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="totalRequests">0</h3>
+        <p>Total Requests</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="pendingRequests">0</h3>
+        <p>Pending Requests</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="completedRequests">0</h3>
+        <p>Completed Requests</p>
+      </div>
+    </div>
+
+    <div class="admin-section">
+  <h2 class="green-title">All Donors</h2>
+
+  <button class="admin-btn toggle-btn" onclick="exportDonorsCSV()">
+    Export Donors CSV
+  </button>
+
+  <div id="donorList">Loading donors...</div>
+</div>
+
+    <div class="admin-section">
+      <h2 class="red-title">Emergency Broadcast</h2>
+
+      <input type="text" id="bPatientName" placeholder="Patient Name" />
+      <input type="text" id="bBloodGroup" placeholder="Blood Group (e.g. O+)" />
+      <input type="text" id="bHospital" placeholder="Hospital Name" />
+      <input type="text" id="bPlace" placeholder="Place" />
+      <input type="text" id="bRequesterName" placeholder="Requester Name" />
+      <input type="text" id="bPhone" placeholder="Requester Phone" />
+      <input type="text" id="bWhatsapp" placeholder="Requester WhatsApp" />
+      <input type="text" id="bUrgency" placeholder="Urgency" />
+
+      <button class="admin-btn toggle-btn" onclick="broadcastEmergency()">
+        Find Broadcast Donors
+      </button>
+
+      <div id="broadcastResults"></div>
+    </div>
+
+    <div class="admin-section">
+      <h2 class="blue-title">All Blood Requests</h2>
+      <div id="requestList">Loading requests...</div>
+    </div>
+  </div>
+
+  <footer>
+    NATIONAL ARTS & SPORTS CLUB, UDMA PADINHAR, KASARAGOD - 671319
+  </footer>
+
+  <script>
+    if (localStorage.getItem("adminLoggedIn") !== "true") {
+      window.location.href = "admin-login.html";
+    }
+
+    function logoutAdmin() {
+      localStorage.removeItem("adminLoggedIn");
+      window.location.href = "admin-login.html";
+    }
+
+    async function loadStats() {
+      try {
+        const response = await fetch("http://localhost:5000/admin/stats");
+        const stats = await response.json();
+
+        document.getElementById("totalDonors").textContent = stats.totalDonors || 0;
+        document.getElementById("availableDonors").textContent = stats.availableDonors || 0;
+        document.getElementById("totalRequests").textContent = stats.totalRequests || 0;
+        document.getElementById("pendingRequests").textContent = stats.pendingRequests || 0;
+        document.getElementById("completedRequests").textContent = stats.completedRequests || 0;
+      } catch (error) {
+        console.log("Failed to load stats");
+      }
+    }
+
+    async function loadDonors() {
+      const donorList = document.getElementById("donorList");
+
+      try {
+        const response = await fetch("http://localhost:5000/donor");
+        const donors = await response.json();
+
+        if (!donors.length) {
+          donorList.innerHTML = "<p>No donors found.</p>";
+          return;
+        }
+
+        donorList.innerHTML = donors.map(donor => `
+          <div class="admin-card">
+            <h3>${donor.name}</h3>
+            <p><strong>Blood Group:</strong> ${donor.bloodGroup}</p>
+            <p><strong>Place:</strong> ${donor.place}</p>
+            <p><strong>Phone:</strong> ${donor.phone}</p>
+            <p><strong>WhatsApp:</strong> ${donor.whatsapp}</p>
+            <p><strong>Available:</strong> ${donor.available ? "Yes" : "No"}</p>
+
+            <button class="admin-btn toggle-btn" onclick="toggleAvailability('${donor._id}', ${!donor.available})">
+              Mark as ${donor.available ? "Unavailable" : "Available"}
+            </button>
+
+            <button class="admin-btn delete-btn" onclick="deleteDonor('${donor._id}')">
+              Delete
+            </button>
+          </div>
+        `).join("");
+      } catch (error) {
+        donorList.innerHTML = "<p>Failed to load donors.</p>";
+      }
+    }
+
+    async function loadRequests() {
+      const requestList = document.getElementById("requestList");
+
+      try {
+        const response = await fetch("http://localhost:5000/request");
+        const requests = await response.json();
+
+        if (!requests.length) {
+          requestList.innerHTML = "<p>No requests found.</p>";
+          return;
+        }
+
+        requestList.innerHTML = requests.map(req => `
+          <div class="admin-card">
+            <h3>${req.patientName}</h3>
+            <p><strong>Blood Group:</strong> ${req.bloodGroup}</p>
+            <p><strong>Hospital:</strong> ${req.hospital}</p>
+            <p><strong>Place:</strong> ${req.place}</p>
+            <p><strong>Requester:</strong> ${req.requesterName}</p>
+            <p><strong>Phone:</strong> ${req.phone}</p>
+            <p><strong>Urgency:</strong> ${req.urgency}</p>
+            <p><strong>Status:</strong> ${req.status}</p>
+
+            <select class="status-select" onchange="updateRequestStatus('${req._id}', this.value)">
+              <option value="">Change Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Contacting Donors">Contacting Donors</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+        `).join("");
+      } catch (error) {
+        requestList.innerHTML = "<p>Failed to load requests.</p>";
+      }
+    }
+
+    async function deleteDonor(id) {
+      const confirmDelete = confirm("Delete this donor?");
+      if (!confirmDelete) return;
+
+      try {
+        await fetch(`http://localhost:5000/donor/${id}`, {
+          method: "DELETE"
+        });
+        loadDonors();
+        loadStats();
+      } catch (error) {
+        alert("Failed to delete donor");
+      }
+    }
+
+    async function toggleAvailability(id, available) {
+      try {
+        await fetch(`http://localhost:5000/donor/availability/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ available })
+        });
+        loadDonors();
+        loadStats();
+      } catch (error) {
+        alert("Failed to update donor");
+      }
+    }
+
+    async function updateRequestStatus(id, status) {
+      if (!status) return;
+
+      try {
+        await fetch(`http://localhost:5000/request/status/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ status })
+        });
+        loadRequests();
+        loadStats();
+      } catch (error) {
+        alert("Failed to update request status");
+      }
+    }
+
+    async function broadcastEmergency() {
+      const data = {
+        patientName: document.getElementById("bPatientName").value.trim(),
+        bloodGroup: document.getElementById("bBloodGroup").value.trim(),
+        hospital: document.getElementById("bHospital").value.trim(),
+        place: document.getElementById("bPlace").value.trim(),
+        requesterName: document.getElementById("bRequesterName").value.trim(),
+        phone: document.getElementById("bPhone").value.trim(),
+        whatsapp: document.getElementById("bWhatsapp").value.trim(),
+        urgency: document.getElementById("bUrgency").value.trim(),
+      };
+
+      const results = document.getElementById("broadcastResults");
+      results.innerHTML = "Loading...";
+
+      try {
+        const response = await fetch("http://localhost:5000/request/broadcast", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          results.innerHTML = `<p>${result.message || "Failed to fetch broadcast donors."}</p>`;
+          return;
+        }
+
+        if (!result.donors || result.donors.length === 0) {
+          results.innerHTML = "<p>No matching donors found for broadcast.</p>";
+          return;
+        }
+
+        const allLinks = result.donors.map(d => d.whatsappLink);
+
+        results.innerHTML = `
+          <h3 class="blue-title">Broadcast Donors</h3>
+          <button class="admin-btn toggle-btn" onclick='openAllLinks(${JSON.stringify(allLinks)})'>
+            Open All WhatsApp
+          </button>
+          ${result.donors.map(donor => `
+            <div class="admin-card">
+              <h3>${donor.name}</h3>
+              <p><strong>Blood Group:</strong> ${donor.bloodGroup}</p>
+              <p><strong>Place:</strong> ${donor.place}</p>
+              <p><strong>Phone:</strong> ${donor.phone}</p>
+
+              <div class="btn-row">
+                <a class="wa-btn" href="${donor.whatsappLink}" target="_blank">WhatsApp</a>
+                <a class="call-btn" href="tel:${donor.phone}">Call</a>
+              </div>
+            </div>
+          `).join("")}
+        `;
+      } catch (error) {
+        results.innerHTML = "<p>Failed to load broadcast donors.</p>";
+      }
+    }
+
+    function openAllLinks(links) {
+      links.forEach((link, index) => {
+        setTimeout(() => {
+          window.open(link, "_blank");
+        }, index * 800);
+      });
+    }
+
+    loadStats();
+    loadDonors();
+    loadRequests();
+    async function exportDonorsCSV() {
+  try {
+    const response = await fetch("http://localhost:5000/donor");
+    const donors = await response.json();
+
+    if (!donors.length) {
+      alert("No donors found");
+      return;
+    }
+
+    let csv = "Name,Blood Group,Phone,Place,WhatsApp,Available\n";
+
+    donors.forEach(donor => {
+      csv += `${donor.name},${donor.bloodGroup},${donor.phone},${donor.place},${donor.whatsapp},${donor.available}\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "donors.csv";
+    a.click();
+
+  } catch (error) {
+    alert("Export failed");
+  }
+}
+  </script>
+</body>
+</html>

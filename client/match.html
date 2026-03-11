@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matching Donors</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header>
+  <div class="header-box">
+
+    <div class="logo-area">
+      <img src="logo.png" class="logo">
+
+      <div class="header-text">
+        <h1>NATIONAL ARTS & SPORTS CLUB</h1>
+        <p>Blood Support System</p>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="donor.html">Donor</a>
+      <a href="request.html">Request</a>
+      <a href="match.html">Find Donors</a>
+    </nav>
+
+  </div>
+</header>
+
+  <div class="container">
+    <div class="card-box">
+      <h2 class="title-center green-title">Find Matching Donors</h2>
+
+      <div class="search-row">
+        <input type="text" id="bloodGroup" placeholder="Enter Blood Group (e.g. O+)" />
+        <button onclick="findDonors()">Search</button>
+      </div>
+
+      <div id="results"></div>
+
+      <a class="link" href="index.html">Back to Home</a>
+    </div>
+  </div>
+
+  <footer>
+    NATIONAL ARTS & SPORTS CLUB, UDMA PADINHAR, KASARAGOD
+  </footer>
+
+  <script>
+    async function findDonors() {
+      const bloodGroup = document.getElementById("bloodGroup").value.trim();
+      const results = document.getElementById("results");
+      results.innerHTML = "Loading...";
+
+      try {
+        const response = await fetch(`http://localhost:5000/request/match/${bloodGroup}`);
+        const donors = await response.json();
+
+        if (!donors.length) {
+          results.innerHTML = "<p>No matching donors found.</p>";
+          return;
+        }
+
+        results.innerHTML = donors.map(donor => `
+          <div class="donor-card">
+            <h3>${donor.name}</h3>
+            <p><strong>Blood Group:</strong> ${donor.bloodGroup}</p>
+            <p><strong>Place:</strong> ${donor.place}</p>
+            <p><strong>Phone:</strong> ${donor.phone}</p>
+            <div class="btn-row">
+              <a class="wa-btn" href="${donor.whatsappLink || '#'}" target="_blank">WhatsApp</a>
+              <a class="call-btn" href="tel:${donor.phone}">Call</a>
+            </div>
+          </div>
+        `).join("");
+      } catch (error) {
+        results.innerHTML = "<p>Error fetching donors.</p>";
+      }
+    }
+  </script>
+</body>
+</html>

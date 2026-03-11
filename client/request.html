@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blood Request</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header>
+  <div class="header-box">
+
+    <div class="logo-area">
+      <img src="logo.png" class="logo">
+
+      <div class="header-text">
+        <h1>NATIONAL ARTS & SPORTS CLUB</h1>
+        <p>Blood Support System</p>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="donor.html">Donor</a>
+      <a href="request.html">Request</a>
+      <a href="match.html">Find Donors</a>
+    </nav>
+
+  </div>
+</header>
+
+  <div class="container">
+    <div class="form-box">
+      <h2 class="title-center red-title">Emergency Blood Request</h2>
+
+      <input type="text" id="patientName" placeholder="Patient Name" />
+      <select id="bloodGroup">
+        <option value="">Select Blood Group</option>
+        <option>A+</option>
+        <option>A-</option>
+        <option>B+</option>
+        <option>B-</option>
+        <option>AB+</option>
+        <option>AB-</option>
+        <option>O+</option>
+        <option>O-</option>
+      </select>
+      <input type="text" id="hospital" placeholder="Hospital Name" />
+      <input type="text" id="place" placeholder="Place" />
+      <input type="text" id="requesterName" placeholder="Requester Name" />
+      <input type="text" id="phone" placeholder="Phone Number" />
+      <input type="text" id="whatsapp" placeholder="WhatsApp Number" />
+      <select id="urgency">
+        <option value="Normal">Normal</option>
+        <option value="Urgent">Urgent</option>
+        <option value="Emergency">Emergency</option>
+      </select>
+
+      <button onclick="submitRequest()">Submit Request</button>
+
+      <div class="msg" id="message"></div>
+      <div id="donorResults"></div>
+
+      <a class="link" href="index.html">Back to Home</a>
+    </div>
+  </div>
+
+  <footer>
+    NATIONAL ARTS & SPORTS CLUB, UDMA PADINHAR, KASARAGOD
+  </footer>
+
+  <script>
+    async function submitRequest() {
+      const requestData = {
+        patientName: document.getElementById("patientName").value.trim(),
+        bloodGroup: document.getElementById("bloodGroup").value,
+        hospital: document.getElementById("hospital").value.trim(),
+        place: document.getElementById("place").value.trim(),
+        requesterName: document.getElementById("requesterName").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        whatsapp: document.getElementById("whatsapp").value.trim(),
+        urgency: document.getElementById("urgency").value
+      };
+
+      const messageBox = document.getElementById("message");
+      const donorResults = document.getElementById("donorResults");
+      donorResults.innerHTML = "";
+
+      try {
+        const response = await fetch("http://localhost:5000/request/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(requestData)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          messageBox.style.color = "red";
+          messageBox.textContent = result.message || "Request failed";
+          return;
+        }
+
+        messageBox.style.color = "green";
+        messageBox.textContent = "Blood request submitted successfully!";
+
+        if (!result.matchingDonors || result.matchingDonors.length === 0) {
+          donorResults.innerHTML = "<p>No matching donors found.</p>";
+          return;
+        }
+
+        donorResults.innerHTML = `
+          <h3 class="blue-title">Matching Donors</h3>
+          ${result.matchingDonors.map(donor => `
+            <div class="donor-card">
+              <h3>${donor.name}</h3>
+              <p><strong>Blood Group:</strong> ${donor.bloodGroup}</p>
+              <p><strong>Place:</strong> ${donor.place}</p>
+              <p><strong>Phone:</strong> ${donor.phone}</p>
+              <div class="btn-row">
+                <a class="wa-btn" href="${donor.whatsappLink}" target="_blank">WhatsApp</a>
+                <a class="call-btn" href="tel:${donor.phone}">Call</a>
+              </div>
+            </div>
+          `).join("")}
+        `;
+      } catch (error) {
+        messageBox.style.color = "red";
+        messageBox.textContent = "Server error";
+        donorResults.innerHTML = "";
+      }
+    }
+  </script>
+</body>
+</html>

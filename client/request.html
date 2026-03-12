@@ -7,49 +7,50 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<header>
-  <div class="header-box">
+  <header>
+    <div class="header-box">
+      <div class="logo-area">
+        <img src="logo.png" class="logo" alt="Club Logo" />
 
-    <div class="logo-area">
-      <img src="logo.png" class="logo">
-
-      <div class="header-text">
-        <h1>NATIONAL ARTS & SPORTS CLUB</h1>
-        <p>Blood Support System</p>
+        <div class="header-text">
+          <h1>NATIONAL ARTS & SPORTS CLUB</h1>
+          <p>Blood Support System</p>
+        </div>
       </div>
+
+      <nav class="nav-menu">
+        <a href="index.html">Home</a>
+        <a href="donor.html">Donor</a>
+        <a href="request.html">Request</a>
+        <a href="match.html">Find Donors</a>
+      </nav>
     </div>
-
-    <nav class="nav-menu">
-      <a href="index.html">Home</a>
-      <a href="donor.html">Donor</a>
-      <a href="request.html">Request</a>
-      <a href="match.html">Find Donors</a>
-    </nav>
-
-  </div>
-</header>
+  </header>
 
   <div class="container">
     <div class="form-box">
       <h2 class="title-center red-title">Emergency Blood Request</h2>
 
       <input type="text" id="patientName" placeholder="Patient Name" />
+      
       <select id="bloodGroup">
         <option value="">Select Blood Group</option>
-        <option>A+</option>
-        <option>A-</option>
-        <option>B+</option>
-        <option>B-</option>
-        <option>AB+</option>
-        <option>AB-</option>
-        <option>O+</option>
-        <option>O-</option>
+        <option value="A+">A+</option>
+        <option value="A-">A-</option>
+        <option value="B+">B+</option>
+        <option value="B-">B-</option>
+        <option value="AB+">AB+</option>
+        <option value="AB-">AB-</option>
+        <option value="O+">O+</option>
+        <option value="O-">O-</option>
       </select>
+
       <input type="text" id="hospital" placeholder="Hospital Name" />
       <input type="text" id="place" placeholder="Place" />
       <input type="text" id="requesterName" placeholder="Requester Name" />
       <input type="text" id="phone" placeholder="Phone Number" />
       <input type="text" id="whatsapp" placeholder="WhatsApp Number" />
+
       <select id="urgency">
         <option value="Normal">Normal</option>
         <option value="Urgent">Urgent</option>
@@ -86,8 +87,23 @@
       const donorResults = document.getElementById("donorResults");
       donorResults.innerHTML = "";
 
+      if (
+        !requestData.patientName ||
+        !requestData.bloodGroup ||
+        !requestData.hospital ||
+        !requestData.place ||
+        !requestData.requesterName ||
+        !requestData.phone ||
+        !requestData.whatsapp
+      ) {
+        messageBox.style.color = "red";
+        messageBox.textContent = "Please fill all required fields";
+        return;
+      }
+
       try {
         const response = await fetch("https://blood-support-system.onrender.com/request/add", {
+          method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
@@ -105,6 +121,15 @@
         messageBox.style.color = "green";
         messageBox.textContent = "Blood request submitted successfully!";
 
+        document.getElementById("patientName").value = "";
+        document.getElementById("bloodGroup").value = "";
+        document.getElementById("hospital").value = "";
+        document.getElementById("place").value = "";
+        document.getElementById("requesterName").value = "";
+        document.getElementById("phone").value = "";
+        document.getElementById("whatsapp").value = "";
+        document.getElementById("urgency").value = "Normal";
+
         if (!result.matchingDonors || result.matchingDonors.length === 0) {
           donorResults.innerHTML = "<p>No matching donors found.</p>";
           return;
@@ -118,6 +143,7 @@
               <p><strong>Blood Group:</strong> ${donor.bloodGroup}</p>
               <p><strong>Place:</strong> ${donor.place}</p>
               <p><strong>Phone:</strong> ${donor.phone}</p>
+
               <div class="btn-row">
                 <a class="wa-btn" href="${donor.whatsappLink}" target="_blank">WhatsApp</a>
                 <a class="call-btn" href="tel:${donor.phone}">Call</a>
@@ -126,6 +152,7 @@
           `).join("")}
         `;
       } catch (error) {
+        console.log("Request error:", error);
         messageBox.style.color = "red";
         messageBox.textContent = "Server error";
         donorResults.innerHTML = "";
